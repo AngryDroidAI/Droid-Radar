@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Droid Radar</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <style>
+        body {
+            background-color: black;
+            color: #00ff00;
+            font-family: monospace;
+            margin: 0;
+            padding: 0;
+        }
+
+        .title {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .background {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .radar {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            border: 2px solid #00ff00;
+            border-radius: 50%;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .scanning-hand {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform-origin: center bottom;
+            width: 2px;
+            height: 150px;
+            background-color: #00ff00;
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateX(-50%) rotate(0deg); }
+            50% { transform: translateX(-50%) rotate(45deg); }
+            100% { transform: translateX(-50%) rotate(0deg); }
+        }
+
+        .wifi-details {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            text-align: left;
+            font-size: 18px;
+        }
+
+        .network-speed {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .download-speed,
+        .upload-speed {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">Droid Radar</div>
+    <div class="background">
+        <canvas id="matrix-effect"></canvas>
+        <div class="radar">
+            <div class="scanning-hand"></div>
+        </div>
+    </div>
+    <div class="wifi-details">
+        <div class="wifi-strength">Wi-Fi Strength: <span id="strength"></span></div>
+        <div class="distance">Distance: <span id="distance"></span></div>
+        <div class="ip-address">IP Address: <span id="ip-address"></span></div>
+        <div class="isp-distance">ISP Distance: <span id="isp-distance"></span></div>
+    </div>
+    <div class="network-speed">
+        <div class="download-speed">Download Speed: <span id="download-speed"></span> Mbps</div>
+        <div class="upload-speed">Upload Speed: <span id="upload-speed"></span> Mbps</div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        function getRandomValue(min, max) {
+            return Math.floor(Math.random() * (max - min + 1) + min);
+        }
+
+        function createMatrixEffect() {
+            const canvas = document.getElementById('matrix-effect');
+            const ctx = canvas.getContext('2d');
+            const characters = 'abcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()-=_+[{}]\\|;:\'",<.>/?`.~ ';
+
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const columns = canvas.width / 20;
+
+            const streams = [];
+            for (let i = 0; i < columns; i++) {
+                streams[i] = {
+                    x: i * 20,
+                    y: getRandomValue(-1000, 0),
+                    speed: getRandomValue(5, 20),
+                    length: getRandomValue(10, 35),
+                    characters: Array.from(Array(getRandomValue(10, 30))).map(() => characters[Math.floor(Math.random() * characters.length)]),
+                };
+            }
+
+            function draw() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#00ff00';
+                ctx.font = '15px monospace';
+
+                streams.forEach((stream) => {
+                    stream.characters.forEach((character, index) => {
+                        const x = stream.x;
+                        const y = stream.y + (index * 20);
+                        ctx.fillText(character, x, y);
+                    });
+
+                    if (stream.y >= canvas.height) {
+                        stream.y = getRandomValue(-1000, 0);
+                    } else {
+                        stream.y += stream.speed;
+                    }
+                });
+
+                requestAnimationFrame(draw);
+            }
+
+            draw();
+        }
+
+        function updateWifiDetails() {
+            document.getElementById('strength').textContent = getRandomValue(0, 100) + '%';
+            document.getElementById('distance').textContent = getRandomValue(1, 10) + ' meters';
+            document.getElementById('ip-address').textContent = '192.168.0.1';
+            document.getElementById('isp-distance').textContent = getRandomValue(1, 100) + ' miles';
+        }
+
+        function updateNetworkSpeed() {
+            document.getElementById('download-speed').textContent = getRandomValue(0, 100);
+            document.getElementById('upload-speed').textContent = getRandomValue(0, 100);
+        }
+
+        createMatrixEffect();
+        setInterval(updateWifiDetails, 3000);
+        setInterval(updateNetworkSpeed, 5000);
+    </script>
+</body>
+</html>
